@@ -15,7 +15,10 @@ st.set_page_config(
     layout="centered"
 )
 
-CREATED_CSV = os.path.join(os.path.expanduser("~"), "created_csv.csv")
+
+os.makedirs(r"D:\\Register", exist_ok=True)
+
+CREATED_CSV = r"D:\\Register\\created_csv2026.csv"
 
 
 def bkk_now():
@@ -35,7 +38,7 @@ def read_uploaded_file(uploaded_file):
 
 
 def load_created_csv():
-    cols = ["first_name", "last_name", "citizen_ID", "student_ID", "timestamp_BKK"]
+    cols = ["first_name", "last_name", "email", "citizen_ID", "student_ID", "timestamp_BKK"]
 
     if os.path.exists(CREATED_CSV):
         return pd.read_csv(CREATED_CSV, dtype=str).fillna("")
@@ -52,6 +55,10 @@ def append_created_csv(row):
 
     if row["citizen_ID"] in df_old["citizen_ID"].astype(str).values:
         st.error("citizen_ID นี้ถูกลงทะเบียนแล้ว")
+        st.stop()
+
+    if row["email"] in df_old["email"].astype(str).values:
+        st.error("Email นี้ถูกลงทะเบียนแล้ว")
         st.stop()
 
     df_new = pd.concat([df_old, pd.DataFrame([row])], ignore_index=True)
@@ -104,11 +111,11 @@ def print_a4(first_name, last_name, student_id, qr_img, timestamp):
 
 
 st.title("🆔 Student Registry & QR Code: KU KPS Infirmary")
-st.caption("Upload รายชื่อ → Search → ลงทะเบียน → สร้าง QR → บันทึก created_csv.csv")
+st.caption("Upload รายชื่อ → Search → ลงทะเบียน → สร้าง QR → บันทึก created_csv2026.csv")
 
 st.warning(
-    "ไฟล์ที่ Upload จะไม่ถูกแก้ไข โปรแกรมจะสร้าง/append เฉพาะไฟล์ created_csv.csv "
-    "ใน home folder ของเครื่องหรือ container เท่านั้น"
+    "ไฟล์ที่ Upload จะไม่ถูกแก้ไข โปรแกรมจะสร้าง/append เฉพาะไฟล์ created_csv2026.csv "
+    "ใน D:\\Register เท่านั้น"
 )
 
 uploaded_file = st.file_uploader(
@@ -162,7 +169,7 @@ if uploaded_file:
             selected_last = selected_row["last_name"]
 
         else:
-            st.error("ไม่พบรายชื่อ สามารถกรอกใหม่เพื่อ append เข้า created_csv.csv ได้")
+            st.error("ไม่พบรายชื่อ สามารถกรอกใหม่เพื่อ append เข้า created_csv2026.csv ได้")
             selected_first = st.text_input("first_name ใหม่")
             selected_last = st.text_input("last_name ใหม่")
 
@@ -172,13 +179,14 @@ if uploaded_file:
 
     first_name = st.text_input("first_name", value=selected_first)
     last_name = st.text_input("last_name", value=selected_last)
+    email = st.text_input("Email", placeholder="student@ku.th")
     citizen_id = st.text_input("citizen_ID", type="password")
     student_id = st.text_input("student_ID")
 
     confirm = st.checkbox("ยืนยันว่าข้อมูลถูกต้องแล้ว")
 
     if st.button("บันทึกและสร้าง QR Code"):
-        if not first_name or not last_name or not citizen_id or not student_id:
+        if not first_name or not last_name or not email or not citizen_id or not student_id:
             st.error("กรุณากรอกข้อมูลให้ครบ")
             st.stop()
 
@@ -191,14 +199,19 @@ if uploaded_file:
         row = {
             "first_name": first_name.strip(),
             "last_name": last_name.strip(),
+            "email": email.strip(),
             "citizen_ID": citizen_id.strip(),
             "student_ID": student_id.strip(),
             "timestamp_BKK": timestamp
         }
 
+        if "@" not in email:
+            st.error("Email ไม่ถูกต้อง")
+            st.stop()
+
         created_df = append_created_csv(row)
 
-        st.success(f"บันทึกลง created_csv.csv แล้ว: {CREATED_CSV}")
+        st.success(f"บันทึกลง created_csv2026.csv แล้ว: {CREATED_CSV}")
 
         qr_img = make_qr_png(student_id.strip())
 
@@ -221,23 +234,23 @@ if uploaded_file:
         )
 
         st.download_button(
-            "ดาวน์โหลด created_csv.csv",
+            "ดาวน์โหลด created_csv2026.csv",
             data=created_df.to_csv(index=False, encoding="utf-8-sig"),
-            file_name="created_csv.csv",
+            file_name="created_csv2026.csv",
             mime="text/csv"
         )
 
 st.divider()
 
-st.subheader("ดู created_csv.csv ปัจจุบัน")
+st.subheader("ดู created_csv2026.csv ปัจจุบัน")
 
 created_now = load_created_csv()
 st.dataframe(created_now, use_container_width=True)
 
 if not created_now.empty:
     st.download_button(
-        "ดาวน์โหลด created_csv.csv ล่าสุด",
+        "ดาวน์โหลด created_csv2026.csv ล่าสุด",
         data=created_now.to_csv(index=False, encoding="utf-8-sig"),
-        file_name="created_csv.csv",
+        file_name="created_csv2026.csv",
         mime="text/csv"
     )
