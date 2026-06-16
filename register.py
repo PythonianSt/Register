@@ -103,7 +103,7 @@ def print_a4(first_name, last_name, student_id, qr_img, timestamp):
     st.components.v1.html(html, height=750)
 
 
-st.title("🆔 Student Registry & QR Code")
+st.title("🆔 Student Registry & QR Code: KU KPS Infirmary")
 st.caption("Upload รายชื่อ → Search → ลงทะเบียน → สร้าง QR → บันทึก created_csv.csv")
 
 st.warning(
